@@ -2,12 +2,22 @@ from django.shortcuts import render, get_object_or_404,redirect
 from .models import Blog
 from django.utils import timezone
 from .forms import BlogUpdate
+from django.core.paginator import Paginator
+from faker import Faker
 # Create your views here.
 def hello(request):
     return render(request, 'hello.html')
+
 def blog(request):
-    blogs = Blog.objects 
-    return render(request, 'blog.html', {'blogs' : blogs})
+    blogs = Blog.objects #가지고오기
+
+    blog_list = Blog.objects.all() #쿼리셋으로 가지고오기. 쿼리셋은 DB에 접근하기 쉽도록 쓰는 언어?
+    paginator = Paginator(blog_list, 10) #가지고 온 것 page단위로 뿌리기 
+
+    page = request.GET.get('page') #페이지에 들어갈 내용 가지고 와줘
+
+    articles = paginator.get_page(page) # 내용을 뿌린다.
+    return render(request, 'blog.html', {'blogs' : blogs, 'articles' : articles}) # html에 뿌릴수 있는 객체들을 보낸다.
 
 def detail(request, blog_id):
     blog_detail = get_object_or_404(Blog, pk = blog_id) 
@@ -48,6 +58,15 @@ def update(request, blog_id):
 def introduce(request):
     return render(request, 'introduce.html')
 
-
+def fake(request):
+    for i in range(10):
+        blog = Blog()
+        fake = Faker()
+        blog.title = fake.name()
+        blog.body = fake.sentence()
+        blog.pub_date = timezone.datetime.now()
+        blog.save()
+        
+    return redirect('/')
 
 
