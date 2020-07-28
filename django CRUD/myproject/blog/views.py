@@ -4,6 +4,8 @@ from django.utils import timezone
 from .forms import BlogUpdate
 from django.core.paginator import Paginator
 from faker import Faker
+from django.contrib.auth.models import User
+
 # Create your views here.
 def hello(request):
     return render(request, 'hello.html')
@@ -12,7 +14,7 @@ def blog(request):
     blogs = Blog.objects #가지고오기
 
     blog_list = Blog.objects.all() #쿼리셋으로 가지고오기. 쿼리셋은 DB에 접근하기 쉽도록 쓰는 언어?
-    paginator = Paginator(blog_list, 10) #가지고 온 것 page단위로 뿌리기 
+    paginator = Paginator(blog_list, 5) #가지고 온 것 page단위로 뿌리기 
 
     page = request.GET.get('page') #페이지에 들어갈 내용 가지고 와줘
 
@@ -31,6 +33,10 @@ def create(request):
     blog.title = request.GET['title']
     blog.body = request.GET['body']
     blog.pub_date = timezone.datetime.now()
+    if request.user.is_authenticated:
+        blog.writer = request.user.get_username()
+    else:
+        blog.writer = ""
     blog.save()
     return redirect("/blog/" + str(blog.id))
 
